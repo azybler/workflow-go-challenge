@@ -1,0 +1,56 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: workflow
+      POSTGRES_PASSWORD: workflow123
+      POSTGRES_DB: workflow_engine
+    ports:
+      - "5876:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "8086:8080"
+    environment:
+      - ENV=development
+      - GIN_MODE=debug
+      - DATABASE_URL=postgres://workflow:workflow123@postgres:5432/workflow_engine?sslmode=disable
+    volumes:
+      - ./api:/app
+    depends_on:
+      - postgres
+    networks:
+      - app-network
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    ports:
+      - "3003:3000"
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_API_URL=http://localhost:8086
+      - WATCHPACK_POLLING=true  # Enable polling for better file watching in Docker
+    depends_on:
+      - api
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
