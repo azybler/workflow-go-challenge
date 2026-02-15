@@ -36,6 +36,12 @@ func main() {
 	}
 	defer pool.Close()
 
+	// Initialize database schema and seed data
+	if err := workflow.InitDB(ctx, pool); err != nil {
+		slog.Error("Failed to initialize database", "error", err)
+		return
+	}
+
 	// setup router
 	mainRouter := mux.NewRouter()
 
