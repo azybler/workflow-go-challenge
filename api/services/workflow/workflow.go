@@ -66,7 +66,7 @@ func (s *Service) HandleExecuteWorkflow(w http.ResponseWriter, r *http.Request) 
 	results, err := s.engine.Execute(r.Context(), wf, state)
 	if err != nil {
 		slog.Error("Workflow execution failed", "id", id, "error", err)
-		writeError(w, http.StatusInternalServerError, err.Error())
+		writeError(w, http.StatusInternalServerError, "internal server error")
 		return
 	}
 
