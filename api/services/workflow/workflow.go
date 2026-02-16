@@ -5,12 +5,17 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
 // HandleGetWorkflow loads a workflow definition from the database and returns it as JSON.
 func (s *Service) HandleGetWorkflow(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
+	if _, err := uuid.Parse(id); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid workflow id")
+		return
+	}
 	slog.Debug("Getting workflow", "id", id)
 
 	wf, err := s.repo.Get(r.Context(), id)
@@ -32,6 +37,10 @@ func (s *Service) HandleGetWorkflow(w http.ResponseWriter, r *http.Request) {
 // and returns step-by-step results.
 func (s *Service) HandleExecuteWorkflow(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
+	if _, err := uuid.Parse(id); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid workflow id")
+		return
+	}
 	slog.Debug("Executing workflow", "id", id)
 
 	var req ExecuteRequest

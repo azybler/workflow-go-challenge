@@ -44,7 +44,7 @@ func TestHandleGetWorkflow_Success(t *testing.T) {
 	svc := newTestService(wf, 0)
 	router := setupRouter(svc)
 
-	req := httptest.NewRequest("GET", "/api/v1/workflows/test-id", nil)
+	req := httptest.NewRequest("GET", "/api/v1/workflows/550e8400-e29b-41d4-a716-446655440000", nil)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
@@ -62,7 +62,7 @@ func TestHandleGetWorkflow_NotFound(t *testing.T) {
 	svc := newTestService(nil, 0)
 	router := setupRouter(svc)
 
-	req := httptest.NewRequest("GET", "/api/v1/workflows/unknown-id", nil)
+	req := httptest.NewRequest("GET", "/api/v1/workflows/00000000-0000-0000-0000-000000000000", nil)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
@@ -71,6 +71,21 @@ func TestHandleGetWorkflow_NotFound(t *testing.T) {
 	var result map[string]string
 	json.NewDecoder(w.Body).Decode(&result)
 	assert.Equal(t, "workflow not found", result["message"])
+}
+
+func TestHandleGetWorkflow_InvalidID(t *testing.T) {
+	svc := newTestService(nil, 0)
+	router := setupRouter(svc)
+
+	req := httptest.NewRequest("GET", "/api/v1/workflows/not-a-uuid", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+
+	var result map[string]string
+	json.NewDecoder(w.Body).Decode(&result)
+	assert.Equal(t, "invalid workflow id", result["message"])
 }
 
 func TestHandleExecuteWorkflow_Success(t *testing.T) {
@@ -83,7 +98,7 @@ func TestHandleExecuteWorkflow_Success(t *testing.T) {
 		Condition: ConditionInput{Operator: "greater_than", Threshold: 25},
 	})
 
-	req := httptest.NewRequest("POST", "/api/v1/workflows/test-id/execute", bytes.NewReader(body))
+	req := httptest.NewRequest("POST", "/api/v1/workflows/550e8400-e29b-41d4-a716-446655440000/execute", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
@@ -108,7 +123,7 @@ func TestHandleExecuteWorkflow_BadInput(t *testing.T) {
 		Condition: ConditionInput{Operator: "greater_than", Threshold: 25},
 	})
 
-	req := httptest.NewRequest("POST", "/api/v1/workflows/test-id/execute", bytes.NewReader(body))
+	req := httptest.NewRequest("POST", "/api/v1/workflows/550e8400-e29b-41d4-a716-446655440000/execute", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
@@ -130,7 +145,7 @@ func TestHandleExecuteWorkflow_InvalidOperator(t *testing.T) {
 		Condition: ConditionInput{Operator: "invalid_op", Threshold: 25},
 	})
 
-	req := httptest.NewRequest("POST", "/api/v1/workflows/test-id/execute", bytes.NewReader(body))
+	req := httptest.NewRequest("POST", "/api/v1/workflows/550e8400-e29b-41d4-a716-446655440000/execute", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
@@ -151,7 +166,7 @@ func TestHandleExecuteWorkflow_NotFound(t *testing.T) {
 		Condition: ConditionInput{Operator: "greater_than", Threshold: 25},
 	})
 
-	req := httptest.NewRequest("POST", "/api/v1/workflows/unknown/execute", bytes.NewReader(body))
+	req := httptest.NewRequest("POST", "/api/v1/workflows/00000000-0000-0000-0000-000000000000/execute", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
@@ -164,7 +179,7 @@ func TestHandleExecuteWorkflow_InvalidJSON(t *testing.T) {
 	svc := newTestService(wf, 30.0)
 	router := setupRouter(svc)
 
-	req := httptest.NewRequest("POST", "/api/v1/workflows/test-id/execute", bytes.NewReader([]byte("not json")))
+	req := httptest.NewRequest("POST", "/api/v1/workflows/550e8400-e29b-41d4-a716-446655440000/execute", bytes.NewReader([]byte("not json")))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
