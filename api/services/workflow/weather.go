@@ -27,7 +27,7 @@ func NewOpenMeteoClient() *OpenMeteoClient {
 
 // openMeteoResponse is the relevant subset of the Open-Meteo API response.
 type openMeteoResponse struct {
-	CurrentWeather struct {
+	CurrentWeather *struct {
 		Temperature float64 `json:"temperature"`
 	} `json:"current_weather"`
 }
@@ -57,6 +57,9 @@ func (c *OpenMeteoClient) GetTemperature(ctx context.Context, lat, lon float64) 
 	var result openMeteoResponse
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return 0, fmt.Errorf("decode weather response: %w", err)
+	}
+	if result.CurrentWeather == nil {
+		return 0, fmt.Errorf("weather API response missing current_weather data")
 	}
 
 	return result.CurrentWeather.Temperature, nil
