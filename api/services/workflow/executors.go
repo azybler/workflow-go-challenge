@@ -61,8 +61,12 @@ func (e *IntegrationExecutor) Execute(ctx context.Context, node Node, state *Exe
 			continue
 		}
 		if cityName, _ := m["city"].(string); strings.EqualFold(cityName, city) {
-			lat, _ = toFloat64(m["lat"])
-			lon, _ = toFloat64(m["lon"])
+			var okLat, okLon bool
+			lat, okLat = toFloat64(m["lat"])
+			lon, okLon = toFloat64(m["lon"])
+			if !okLat || !okLon {
+				return nil, fmt.Errorf("invalid coordinates for city %q", city)
+			}
 			found = true
 			break
 		}

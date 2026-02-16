@@ -120,6 +120,29 @@ func TestIntegrationExecutor_Success(t *testing.T) {
 	assert.Contains(t, result.Output["message"].(string), "Sydney")
 }
 
+func TestIntegrationExecutor_InvalidCoordinates(t *testing.T) {
+	client := &mockWeatherClient{temperature: 20}
+	exec := &IntegrationExecutor{client: client}
+	state := newTestState()
+
+	node := Node{
+		ID: "weather-api", Type: "integration",
+		Data: NodeData{
+			Label: "Weather API",
+			Metadata: map[string]any{
+				"options": []any{
+					map[string]any{"city": "Sydney", "lat": "not-a-number", "lon": 151.2093},
+				},
+			},
+		},
+	}
+
+	_, err := exec.Execute(context.Background(), node, state)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid coordinates")
+}
+
 func TestIntegrationExecutor_CityNotFound(t *testing.T) {
 	client := &mockWeatherClient{temperature: 20}
 	exec := &IntegrationExecutor{client: client}
